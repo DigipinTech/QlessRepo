@@ -1,6 +1,17 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { requireApiSession, handleApiError } from "@/lib/api-helpers";
+
+export async function GET() {
+  try {
+    await requireApiSession(["SUPER_ADMIN"]);
+    const demoRequests = await prisma.demoRequest.findMany({ orderBy: { createdAt: "desc" } });
+    return NextResponse.json({ demoRequests });
+  } catch (err) {
+    return handleApiError(err);
+  }
+}
 
 const schema = z.object({
   organization: z.string().min(2).max(200),
