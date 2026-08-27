@@ -101,6 +101,30 @@ For a quick persistent demo, a small VM or container host (Fly.io, Railway,
 a Docker host with a volume) that keeps the SQLite file on disk needs no
 code changes at all.
 
+### One-click free deploy (Render)
+
+`render.yaml` at the repo root is a ready-to-use Render Blueprint: it builds
+the app, runs migrations, reseeds demo data, and starts the server on
+Render's free web-service tier — no external database needed, since the
+free tier's container disk lives for the life of that instance and
+`npm run start:deploy` (`prisma migrate deploy && npm run db:seed && next
+start`) rebuilds it fresh on every boot.
+
+1. Go to `https://render.com/deploy?repo=https://github.com/DigipinTech/QlessRepo`
+   (sign in / create a free Render account if you don't have one).
+2. Grant Render access to the `DigipinTech` GitHub org if this repo is
+   private, then in the blueprint wizard pick the branch you want to deploy.
+3. Click **Apply**. Render provisions `JWT_SECRET` automatically
+   (`generateValue: true`) and gives you a public `https://qless-*.onrender.com`
+   URL once the build finishes (a few minutes).
+
+Free-tier notes: the instance spins down after ~15 minutes idle and takes
+~30–50s to wake on the next request, and demo data resets to the seeded
+state on every restart — both are fine for a demo, not for a real deployment.
+For a durable deployment, use Vercel (or any host) with `DATABASE_URL`
+pointed at a real Postgres instance (e.g. Neon or Supabase's free tiers)
+per the steps above instead.
+
 ## Project structure
 
 ```

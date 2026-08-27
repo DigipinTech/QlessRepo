@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: qless
+    runtime: node
+    plan: free
+    branch: claude/qless-web-app-c0xh11
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:deploy
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: file:./prisma/dev.db
+      - key: JWT_SECRET
+        generateValue: true
+      - key: NODE_VERSION
+        value: 22.11.0
