@@ -11,6 +11,9 @@ export const metadata: Metadata = {
   title: "QLess — Smart Queue Management for Hospitals & Labs",
   description:
     "QLess digitizes patient queues for hospitals, clinics and labs: real-time token tracking, doctor-wise queues, and wait-time analytics that cut crowding and improve care.",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
