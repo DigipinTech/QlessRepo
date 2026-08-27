@@ -1,0 +1,271 @@
+// QLess Hospital & Clinic Queue Management — data model
+// See BRD section 9 (Database Logical Entities) for the source requirements.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum Role {
+  SUPER_ADMIN
+  HOSPITAL_ADMIN
+  DOCTOR
+  RECEPTIONIST
+}
+
+enum HospitalStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum SubscriptionPlan {
+  BASIC
+  PREMIUM
+}
+
+enum DoctorStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum VisitType {
+  NEW
+  FOLLOW_UP
+}
+
+enum TokenStatus {
+  WAITING
+  CALLED
+  IN_CONSULTATION
+  COMPLETED
+  NO_SHOW
+  CANCELLED
+}
+
+enum QueueSessionStatus {
+  OPEN
+  PAUSED
+  CLOSED
+}
+
+enum NotificationChannel {
+  SMS
+  WHATSAPP
+  PUSH
+}
+
+enum NotificationEvent {
+  TOKEN_GENERATED
+  UPCOMING_TURN
+  DOCTOR_CALLING
+  DELAY
+  QUEUE_RESET
+}
+
+enum NotificationStatus {
+  SENT
+  FAILED
+}
+
+// ---------------------------------------------------------------------------
+// Core entities
+// ---------------------------------------------------------------------------
+
+model Hospital {
+  id                 String           @id @default(cuid())
+  name               String
+  slug               String           @unique
+  address            String
+  phone              String
+  email              String
+  logoUrl            String?
+  status             HospitalStatus   @default(ACTIVE)
+  subscriptionPlan   SubscriptionPlan @default(BASIC)
+  doctorLimit        Int              @default(5)
+  subscriptionExpiry DateTime
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  departments   Department[]
+  doctors       Doctor[]
+  users         User[]
+  patients      Patient[]
+  tokens        Token[]
+  queueSessions QueueSession[]
+  notifications NotificationLog[]
+  auditLogs     AuditLog[]
+
+  @@index([status])
+}
+
+model Department {
+  id         String   @id @default(cuid())
+  hospitalId String
+  name       String
+  createdAt  DateTime @default(now())
+
+  hospital Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  doctors  Doctor[]
+
+  @@unique([hospitalId, name])
+}
+
+model User {
+  id                 String    @id @default(cuid())
+  hospitalId         String?
+  role               Role
+  name               String
+  email              String    @unique
+  phone              String?
+  passwordHash       String
+  isActive           Boolean   @default(true)
+  failedLoginAttempts Int      @default(0)
+  lockedUntil        DateTime?
+  lastLoginAt        DateTime?
+  createdAt          DateTime  @default(now())
+
+  hospital  Hospital? @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  doctor    Doctor?
+  auditLogs AuditLog[]
+
+  @@index([hospitalId, role])
+}
+
+model Doctor {
+  id              String       @id @default(cuid())
+  hospitalId      String
+  departmentId    String
+  userId          String?      @unique
+  name            String
+  specialization  String
+  maxTokensPerDay Int          @default(40)
+  workingHours    String // JSON string: { "mon": ["09:00-13:00","16:00-19:00"], ... }
+  status          DoctorStatus @default(ACTIVE)
+  isPaused        Boolean      @default(false)
+  createdAt       DateTime     @default(now())
+
+  hospital      Hospital       @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  department    Department     @relation(fields: [departmentId], references: [id])
+  user          User?          @relation(fields: [userId], references: [id])
+  tokens        Token[]
+  queueSessions QueueSession[]
+
+  @@index([hospitalId, status])
+}
+
+model Patient {
+  id         String   @id @default(cuid())
+  hospitalId String
+  name       String
+  mobile     String
+  age        Int
+  gender     String?
+  createdAt  DateTime @default(now())
+
+  hospital Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  tokens   Token[]
+
+  @@index([hospitalId, mobile])
+}
+
+// One row per doctor per calendar day — tracks the running FIFO counter,
+// pause state and emergency overrides for that day's queue.
+model QueueSession {
+  id             String              @id @default(cuid())
+  hospitalId     String
+  doctorId       String
+  queueDate      String // YYYY-MM-DD, keeps the "day end reset" boundary explicit
+  status         QueueSessionStatus  @default(OPEN)
+  lastTokenSeq   Int                 @default(0)
+  currentTokenId String?
+  resetAt        DateTime?
+  createdAt      DateTime            @default(now())
+
+  hospital Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  doctor   Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  tokens   Token[]
+
+  @@unique([doctorId, queueDate])
+  @@index([hospitalId, queueDate])
+}
+
+model Token {
+  id                  String      @id @default(cuid())
+  hospitalId          String
+  doctorId            String
+  patientId           String
+  queueSessionId      String
+  tokenNumber         String // e.g. D1-014
+  sequence            Int
+  visitType           VisitType   @default(NEW)
+  status              TokenStatus @default(WAITING)
+  isEmergency         Boolean     @default(false)
+  estimatedWaitMinutes Int        @default(0)
+  queueDate           String // YYYY-MM-DD
+  calledAt            DateTime?
+  consultationStartAt DateTime?
+  completedAt         DateTime?
+  cancelledAt         DateTime?
+  createdAt           DateTime    @default(now())
+
+  hospital     Hospital     @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  doctor       Doctor       @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  patient      Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  queueSession QueueSession @relation(fields: [queueSessionId], references: [id], onDelete: Cascade)
+  notifications NotificationLog[]
+
+  @@index([hospitalId, doctorId, queueDate, status])
+}
+
+model NotificationLog {
+  id         String              @id @default(cuid())
+  hospitalId String
+  tokenId    String?
+  channel    NotificationChannel
+  event      NotificationEvent
+  message    String
+  status     NotificationStatus  @default(SENT)
+  createdAt  DateTime            @default(now())
+
+  hospital Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  token    Token?   @relation(fields: [tokenId], references: [id], onDelete: Cascade)
+
+  @@index([hospitalId, createdAt])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  hospitalId String?
+  userId     String?
+  action     String
+  entityType String
+  entityId   String?
+  details    String? // JSON string
+  createdAt  DateTime @default(now())
+
+  hospital Hospital? @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  user     User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([hospitalId, createdAt])
+}
+
+// Marketing-site "Request a demo" leads — kept separate from the operational
+// domain so the sales funnel doesn't couple to hospital/tenant data.
+model DemoRequest {
+  id           String   @id @default(cuid())
+  organization String
+  contactName  String
+  email        String
+  phone        String?
+  role         String? // e.g. "Hospital Admin", "Lab Manager"
+  message      String?
+  createdAt    DateTime @default(now())
+}

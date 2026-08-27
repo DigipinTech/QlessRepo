@@ -1,0 +1,164 @@
+@import "tailwindcss";
+
+:root {
+  /* Brand — sampled from the DigiPin Technology / QLess mark:
+     blue hexagon -> green hexagon gradient, metallic slate wordmark. */
+  --color-brand-blue-50: #eff8ff;
+  --color-brand-blue-100: #dbeefe;
+  --color-brand-blue-200: #bfe3fd;
+  --color-brand-blue-300: #7fc8fb;
+  --color-brand-blue-400: #42a8f5;
+  --color-brand-blue-500: #1e88e5;
+  --color-brand-blue-600: #1565c0;
+  --color-brand-blue-700: #0d4d99;
+  --color-brand-blue-800: #0c3e79;
+  --color-brand-blue-900: #0a2f5c;
+
+  --color-brand-green-50: #eefbf0;
+  --color-brand-green-100: #d7f5dc;
+  --color-brand-green-200: #aee8b8;
+  --color-brand-green-300: #74d488;
+  --color-brand-green-400: #4cb968;
+  --color-brand-green-500: #379e50;
+  --color-brand-green-600: #2e7d32;
+  --color-brand-green-700: #24632a;
+  --color-brand-green-800: #1e4f24;
+  --color-brand-green-900: #163b1a;
+
+  --color-brand-slate-50: #f6f7f9;
+  --color-brand-slate-100: #eceef1;
+  --color-brand-slate-200: #d7dbe1;
+  --color-brand-slate-300: #b3bac4;
+  --color-brand-slate-400: #8a93a1;
+  --color-brand-slate-500: #667085;
+  --color-brand-slate-600: #4c5568;
+  --color-brand-slate-700: #383f4f;
+  --color-brand-slate-800: #262b37;
+  --color-brand-slate-900: #171a22;
+
+  --gradient-brand: linear-gradient(
+    135deg,
+    var(--color-brand-blue-500) 0%,
+    var(--color-brand-blue-600) 32%,
+    var(--color-brand-green-500) 72%,
+    var(--color-brand-green-600) 100%
+  );
+
+  --background: #ffffff;
+  --foreground: var(--color-brand-slate-900);
+  --surface: #ffffff;
+  --surface-muted: var(--color-brand-slate-50);
+  --border-subtle: var(--color-brand-slate-200);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-border-subtle: var(--border-subtle);
+
+  --color-brand-blue-50: var(--color-brand-blue-50);
+  --color-brand-blue-100: var(--color-brand-blue-100);
+  --color-brand-blue-200: var(--color-brand-blue-200);
+  --color-brand-blue-300: var(--color-brand-blue-300);
+  --color-brand-blue-400: var(--color-brand-blue-400);
+  --color-brand-blue-500: var(--color-brand-blue-500);
+  --color-brand-blue-600: var(--color-brand-blue-600);
+  --color-brand-blue-700: var(--color-brand-blue-700);
+  --color-brand-blue-800: var(--color-brand-blue-800);
+  --color-brand-blue-900: var(--color-brand-blue-900);
+
+  --color-brand-green-50: var(--color-brand-green-50);
+  --color-brand-green-100: var(--color-brand-green-100);
+  --color-brand-green-200: var(--color-brand-green-200);
+  --color-brand-green-300: var(--color-brand-green-300);
+  --color-brand-green-400: var(--color-brand-green-400);
+  --color-brand-green-500: var(--color-brand-green-500);
+  --color-brand-green-600: var(--color-brand-green-600);
+  --color-brand-green-700: var(--color-brand-green-700);
+  --color-brand-green-800: var(--color-brand-green-800);
+  --color-brand-green-900: var(--color-brand-green-900);
+
+  --color-brand-slate-50: var(--color-brand-slate-50);
+  --color-brand-slate-100: var(--color-brand-slate-100);
+  --color-brand-slate-200: var(--color-brand-slate-200);
+  --color-brand-slate-300: var(--color-brand-slate-300);
+  --color-brand-slate-400: var(--color-brand-slate-400);
+  --color-brand-slate-500: var(--color-brand-slate-500);
+  --color-brand-slate-600: var(--color-brand-slate-600);
+  --color-brand-slate-700: var(--color-brand-slate-700);
+  --color-brand-slate-800: var(--color-brand-slate-800);
+  --color-brand-slate-900: var(--color-brand-slate-900);
+
+  --font-sans: var(--font-inter);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0b0e14;
+    --foreground: #eef1f5;
+    --surface: #11151d;
+    --surface-muted: #161b26;
+    --border-subtle: #232938;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+.qless-input {
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.qless-input:focus {
+  border-color: var(--color-brand-blue-500);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand-blue-500) 20%, transparent);
+}
+
+.brand-gradient-text {
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.brand-gradient-bg {
+  background: var(--gradient-brand);
+}
+
+/* Status colors for token lifecycle badges, kept out of Tailwind's default
+   palette so WAITING/CALLED/etc. read consistently across the app. */
+.status-waiting {
+  --status-bg: color-mix(in srgb, var(--color-brand-slate-400) 16%, transparent);
+  --status-fg: var(--color-brand-slate-600);
+}
+.status-called {
+  --status-bg: color-mix(in srgb, var(--color-brand-blue-500) 16%, transparent);
+  --status-fg: var(--color-brand-blue-600);
+}
+.status-in_consultation {
+  --status-bg: color-mix(in srgb, #a855f7 16%, transparent);
+  --status-fg: #7e22ce;
+}
+.status-completed {
+  --status-bg: color-mix(in srgb, var(--color-brand-green-500) 16%, transparent);
+  --status-fg: var(--color-brand-green-700);
+}
+.status-no_show {
+  --status-bg: color-mix(in srgb, #f59e0b 18%, transparent);
+  --status-fg: #b45309;
+}
+.status-cancelled {
+  --status-bg: color-mix(in srgb, #ef4444 16%, transparent);
+  --status-fg: #b91c1c;
+}
