@@ -176,3 +176,9 @@ body {
   --status-bg: color-mix(in srgb, #f59e0b 18%, transparent);
   --status-fg: #b45309;
 }
+
+@media print {
+  .print-hide {
+    display: none !important;
+  }
+}

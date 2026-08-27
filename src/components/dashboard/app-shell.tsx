@@ -65,12 +65,12 @@ export function AppShell({ role, userName, hospitalName, children }: AppShellPro
   return (
     <div className="min-h-screen bg-surface-muted lg:flex">
       {/* Desktop sidebar */}
-      <aside className="hidden w-64 shrink-0 flex-col border-r border-border-subtle bg-surface lg:flex">
+      <aside className="print-hide hidden w-64 shrink-0 flex-col border-r border-border-subtle bg-surface lg:flex">
         {sidebarContent}
       </aside>
 
       {/* Mobile topbar */}
-      <div className="flex items-center justify-between border-b border-border-subtle bg-surface px-4 py-3 lg:hidden">
+      <div className="print-hide flex items-center justify-between border-b border-border-subtle bg-surface px-4 py-3 lg:hidden">
         <Link href={navItems[0]?.href ?? "/"} className="flex items-center gap-2">
           <QlessMark className="h-6 w-6" />
           <span className="font-semibold text-brand-slate-900">QLess</span>
